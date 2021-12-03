@@ -1,5 +1,5 @@
 export namespace base {
-    export type primitiveType = 'int' | 'string' | 'char' | 'float' | 'complex' | 'bool'
+    export type primitiveType = 'int' | 'string' | 'char' | 'float' | 'complex' | 'bool' | 'type'
     export type scopeType = 'none' | 'normal' | 'frameless'
     export type inputType = primitiveType | 'name'
 }
@@ -22,7 +22,7 @@ export namespace read {
     }
 
     export interface Input {
-        type: base.inputType
+        type: base.inputType[] | 'any'
     }
     
     export interface Block {
@@ -45,7 +45,7 @@ export namespace save {
     }
     
     export interface Input {
-        type: base.inputType,
+        type: base.inputType[] | 'any',
         value: string | Block
     }
     
@@ -57,5 +57,17 @@ export namespace save {
         scope: base.scopeType,
         children: Block[],
         returnType: base.primitiveType | 'void'
+    }
+}
+
+export interface blockOption {
+    color: string,
+    stroke: string,
+    spacename: string[]
+}
+
+declare global {
+    interface Window {
+        api: any
     }
 }
