@@ -1,0 +1,54 @@
+#menu {
+    width: 300px;
+    background-color: white;
+    border: solid 1px #f2f2f2;
+    position: fixed;
+    font-family: NotoSansLight;
+    border-radius: 5px;
+    box-shadow: 0px 0px 1px 1px rgb(212, 212, 212);
+}
+
+#inputGroup {
+    padding: 10px;
+}
+
+#list {
+    padding: 0 10px 10px 10px;
+    font-size: 0.9rem;
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
+#list::-webkit-scrollbar {
+    width: 5px;
+}
+
+#list::-webkit-scrollbar-thumb {
+    background-color: rgba(128, 128, 128, 0.6);
+    border-radius: 4px;
+}
+
+#list::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.line {
+    height: 1px;
+    background-color: #e4e4e4;
+    margin: 8px 0 8px 0;
+}
+
+.item {
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.circle {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 5px 0 5px;
+}
