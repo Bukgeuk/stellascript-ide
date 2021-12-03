@@ -1,0 +1,131 @@
+{
+    "color": "",
+    "stroke": "",
+    "name": "기본",
+    "members": [
+        {
+            "color": "#00b400",
+            "stroke": "#009400",
+            "name": "이벤트",
+            "members": [
+                {
+                    "tag": "start",
+                    "content": ["시작할 때"],
+                    "scope": "frameless",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "prestart",
+                    "content": ["시작하기 전"],
+                    "scope": "frameless",
+                    "returnType": "void"
+                }
+            ]
+        },
+        {
+            "color": "#ff9b00",
+            "stroke": "#fc6500",
+            "name": "입출력",
+            "members": [
+                {
+                    "tag": "print",
+                    "content": [{"type": "any"}, "출력하기"],
+                    "scope": "none",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "input",
+                    "content": [{"type": "name"}, "에 입력받기"],
+                    "scope": "none",
+                    "returnType": "void"
+                }
+            ]
+        },
+        {
+            "color": "#19baea",
+            "stroke": "#1498c0",
+            "name": "제어",
+            "members": [
+                {
+                    "tag": "wait",
+                    "content": [{"type": "float"}, "초 기다리기"],
+                    "scope": "none",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "while",
+                    "content": [{"type": "bool"}, "인 동안 반복하기"],
+                    "scope": "normal",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "for",
+                    "content": [{"type": "int"}, "번 반복하기"],
+                    "scope": "normal",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "break",
+                    "content": ["반복 중단하기"],
+                    "scope": "none",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "continue",
+                    "content": ["반복 건너뛰기"],
+                    "scope": "none",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "if",
+                    "content": ["만약", {"type": "bool"}, "라면"],
+                    "scope": "normal",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "else_if",
+                    "content": ["그렇지 않고", {"type": "bool"}, "라면"],
+                    "scope": "normal",
+                    "returnType": "void"
+                },
+                {
+                    "tag": "else",
+                    "content": ["아니면"],
+                    "scope": "normal",
+                    "returnType": "void"
+                }
+            ]
+        },
+        {
+            "color": "#4562f5",
+            "stroke": "#1b3ad8",
+            "name": "조건",
+            "members": [
+                {
+                    "tag": "true",
+                    "content": ["참"],
+                    "scope": "none",
+                    "returnType": "bool"
+                },
+                {
+                    "tag": "false",
+                    "content": ["거짓"],
+                    "scope": "none",
+                    "returnType": "bool"
+                },
+                {
+                    "tag": "and",
+                    "content": [{"type": "bool"}, "그리고", {"type": "bool"}],
+                    "scope": "none",
+                    "returnType": "bool"
+                },
+                {
+                    "tag": "or",
+                    "content": [{"type": "bool"}, "또는", {"type": "bool"}],
+                    "scope": "none",
+                    "returnType": "bool"
+                }
+            ]
+        }
+    ]
+}
