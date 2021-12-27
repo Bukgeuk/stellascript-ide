@@ -12,12 +12,14 @@
                     "tag": "start",
                     "content": ["시작할 때"],
                     "scope": "frameless",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "prestart",
                     "content": ["시작하기 전"],
                     "scope": "frameless",
+                    "size": "normal",
                     "returnType": "void"
                 }
             ]
@@ -29,14 +31,16 @@
             "members": [
                 {
                     "tag": "print",
-                    "content": [{"type": "any"}, "출력하기"],
+                    "content": [{"type": "any", "value": "Hello, World!"}, "출력하기"],
                     "scope": "none",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "input",
-                    "content": [{"type": "name"}, "에 입력받기"],
+                    "content": [{"type": "name", "value": ""}, "에 입력받기"],
                     "scope": "none",
+                    "size": "normal",
                     "returnType": "void"
                 }
             ]
@@ -48,50 +52,58 @@
             "members": [
                 {
                     "tag": "wait",
-                    "content": [{"type": "float"}, "초 기다리기"],
+                    "content": [{"type": "float", "value": ""}, "초 기다리기"],
                     "scope": "none",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "while",
-                    "content": [{"type": "bool"}, "인 동안 반복하기"],
+                    "content": [{"type": "bool", "value": ""}, "인 동안 반복하기"],
                     "scope": "normal",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "for",
-                    "content": [{"type": "int"}, "번 반복하기"],
+                    "content": [{"type": "int", "value": ""}, "번 반복하기"],
                     "scope": "normal",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "break",
                     "content": ["반복 중단하기"],
                     "scope": "none",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "continue",
                     "content": ["반복 건너뛰기"],
                     "scope": "none",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "if",
-                    "content": ["만약", {"type": "bool"}, "라면"],
+                    "content": ["만약", {"type": "bool", "value": ""}, "이라면"],
                     "scope": "normal",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "else_if",
-                    "content": ["그렇지 않고", {"type": "bool"}, "라면"],
+                    "content": ["그렇지 않고", {"type": "bool", "value": ""}, "이라면"],
                     "scope": "normal",
+                    "size": "normal",
                     "returnType": "void"
                 },
                 {
                     "tag": "else",
                     "content": ["아니면"],
                     "scope": "normal",
+                    "size": "normal",
                     "returnType": "void"
                 }
             ]
@@ -105,24 +117,35 @@
                     "tag": "true",
                     "content": ["참"],
                     "scope": "none",
+                    "size": "small",
                     "returnType": "bool"
                 },
                 {
                     "tag": "false",
                     "content": ["거짓"],
                     "scope": "none",
+                    "size": "small",
                     "returnType": "bool"
                 },
                 {
                     "tag": "and",
-                    "content": [{"type": "bool"}, "그리고", {"type": "bool"}],
+                    "content": [{"type": "bool", "value": {"tag": "true"}}, "그리고", {"type": "bool", "value": {"tag": "true"}}],
                     "scope": "none",
+                    "size": "small",
+                    "returnType": "bool"
+                },
+                {
+                    "tag": "test",
+                    "content": [{"type": "bool", "value": ""}, "test", {"type": "bool", "value": ""}],
+                    "scope": "none",
+                    "size": "small",
                     "returnType": "bool"
                 },
                 {
                     "tag": "or",
-                    "content": [{"type": "bool"}, "또는", {"type": "bool"}],
+                    "content": [{"type": "bool", "value": {"tag": "test"}}, "또는", {"type": "bool", "value": {"tag": "true"}}],
                     "scope": "none",
+                    "size": "small",
                     "returnType": "bool"
                 }
             ]

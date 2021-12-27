@@ -1,0 +1,12 @@
+.foreignInput {
+    font-family: NotoSansLight;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    font-size: 10px;
+    font-weight: bold;
+    width: 100%;
+
+    padding: 0;
+}

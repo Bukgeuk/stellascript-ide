@@ -3,25 +3,31 @@ import { FormControl, InputGroup } from "react-bootstrap";
 import '../font.css'
 import styles from './ContextMenu.module.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { read, blockOption } from "../blockTypes";
+
+import { save } from "../blockTypes";
 
 interface ContextMenuProps {
     query: string,
     setQuery: Function,
     isMenuOpened: boolean,
-    menuPos: {x: number, y: number}
+    handleClick: Function,
+    menuPos: {x: number, y: number},
+    refs: {
+        input: React.Ref<HTMLInputElement>
+        list: React.Ref<HTMLDivElement>
+    }
 }
 
-const MenuItem = (props: {text: string, option: blockOption}) => {
+const MenuItem = (props: {block: save.Block, handleClick: Function}) => {
     return (
-        <div className={styles.item}>
-            <span className={styles.circle} style={{backgroundColor: props.option.color}}></span>
-            <span>{props.text}</span>
+        <div className={styles.item} onClick={() => props.handleClick(props.block)}>
+            <span className={styles.circle} style={{backgroundColor: props.block.color}}></span>
+            <span>{getTextFromContent(props.block.content)}</span>
         </div>
     )
 }
 
-function getTextFromContent(content: (string | read.Input | read.Dropdown)[]) {
+function getTextFromContent(content: (string | save.Input | save.Dropdown)[]) {
     let ret = ''
     content.forEach((item) => {
         if (typeof item === 'string') {
@@ -37,32 +43,31 @@ const Line = () => {
     return <div className={styles.line}></div>
 }
 
-const ContextMenu = React.forwardRef((props: ContextMenuProps, ref: React.ForwardedRef<HTMLInputElement>) => {
+const ContextMenu = (props: ContextMenuProps) => {
     let items
 
     if (props.isMenuOpened) {
-        const list: read.Block[] = window.api.search(props.query)
+        const list: save.Block[] = window.api.search(props.query)
         items = list.map((item, idx) => {
-            const detail = window.api.getDetail(item.tag)
             return (
                 <React.Fragment key={idx}>
                     {idx !== 0 && <Line></Line>}
-                    <MenuItem text={getTextFromContent(item.content)} option={detail}></MenuItem>
+                    <MenuItem block={item} handleClick={props.handleClick}></MenuItem>
                 </React.Fragment>
             )
         })
     }
 
     return (
-        <div id={styles.menu} style={{display: props.isMenuOpened ? 'unset' : 'none', top: props.menuPos.y, left: props.menuPos.x}} onClick={(e) => e.stopPropagation()}>
+        <div id={styles.menu} style={{top: props.isMenuOpened ? props.menuPos.y : -1500, left: props.menuPos.x}} onClick={(e) => e.stopPropagation()}>
             <InputGroup id={styles.inputGroup} size="sm">
-                <FormControl placeholder="블럭 검색" value={props.query} onChange={(event) => props.setQuery(event.target.value)} ref={ref}></FormControl>
+                <FormControl placeholder="블럭 검색" value={props.query} onChange={(event) => props.setQuery(event.target.value)} ref={props.refs.input}></FormControl>
             </InputGroup>
-            <div id={styles.list}>
+            <div id={styles.list} ref={props.refs.list}>
                 {props.isMenuOpened && items}
             </div>
         </div>
     )
-})
+}
 
 export default ContextMenu;
