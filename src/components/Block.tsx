@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { typeCheck, save } from '../blockTypes'
 import { basicInputShapeWidth, blockPadding, blockSpace, normalShapeConstant, smallShapeConstant } from "../constant";
 import { getTextWidth } from "../function/utils";
-import { addWidth, getCurrentTab } from "../manager";
+import { addWidth } from "../manager";
 import './Block.css'
 
 import Input from "./Input";
@@ -25,7 +25,15 @@ const NormalScopeShape = (props: {width: number, color: string, stroke: string})
     )
 }
 
-const Block = (props: { template: save.Block, pos: string, addWidth: Function | null, update: Function | null }) => {
+interface BlockProps {
+    template: save.Block,
+    pos: string,
+    movPos: { x: number, y: number } | null,
+    addWidth: Function | null,
+    update: Function | null
+}
+
+const Block = (props: BlockProps) => {
     let stateArr = Array<string>()
     let [update, setUpdate] = useState(false)
 
@@ -78,7 +86,7 @@ const Block = (props: { template: save.Block, pos: string, addWidth: Function | 
             }
             else {
                 widthToAdd += item.value.width
-                ret = <g transform={`translate(${currentX}, 0)`} key={idx}><Block template={item.value} pos={`${props.pos}.0.${idx + 1}`} addWidth={addWidthBlock} update={() => setUpdate(!update)}></Block></g>
+                ret = <g transform={`translate(${currentX}, 0)`} key={idx}><Block template={item.value} pos={`${props.pos}.0.${idx + 1}`} addWidth={addWidthBlock} update={() => setUpdate(!update)} movPos={null}></Block></g>
             }
             
         } else {
@@ -90,14 +98,13 @@ const Block = (props: { template: save.Block, pos: string, addWidth: Function | 
     currentX -= blockSpace
     currentX += blockPadding
 
-    function handleDrag() {
-
-    }
-
     const zoom = useContext(ZoomContext)
+    if (!props.template.pos) props.template.pos = { x: 0, y: 0 }
+    if (!props.movPos) props.movPos = { x: 0, y: 0 }
+    const posX = props.template.pos.x + props.movPos.x, posY = props.template.pos.y + props.movPos.y
 
     return (
-        <g className="block" transform={props.template.pos ? `translate(${props.template.pos.x / zoom}, ${props.template.pos.y / zoom})` : ''} data-block-pos={props.pos} onDrag={handleDrag}>
+        <g className="block" transform={`translate(${posX / zoom}, ${posY / zoom})`} data-block-pos={props.pos}>
             {props.template.scope === 'normal' ?
             <NormalScopeShape color={props.template.color} stroke={props.template.stroke} width={currentX}></NormalScopeShape> :
             <NoneScopeShape color={props.template.color} stroke={props.template.stroke} size={props.template.size} width={currentX}></NoneScopeShape>}

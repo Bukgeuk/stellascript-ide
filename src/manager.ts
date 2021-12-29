@@ -2,6 +2,7 @@ import { save } from './blockTypes'
 import { deepClone } from './function/utils'
 
 let tabs: Array<Array<save.Block>> = [[]]
+let movpos: Array<{ x: number, y: number }> = [{ x: 0, y: 0 }]
 let currentTab: number = 0
 let grabbingBlock: save.Block | null = null
 
@@ -99,4 +100,15 @@ export function addWidth(width: number, pos: string) {
             } 
         }
     }
+}
+
+export function move(x: number, y: number) {
+    movpos[currentTab] = {
+        x: movpos[currentTab].x + x,
+        y: movpos[currentTab].y + y
+    }
+}
+
+export function getMovPos(): { x: number, y: number } {
+    return movpos[currentTab]
 }

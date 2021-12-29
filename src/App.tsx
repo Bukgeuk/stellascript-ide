@@ -5,7 +5,7 @@ import './App.css';
 import ContextMenu from './components/ContextMenu';
 import Block from './components/Block';
 
-import { addBlock, getCurrentTab, getGrabbingBlock } from './manager';
+import { addBlock, getCurrentTab, getGrabbingBlock, getMovPos, move } from './manager';
 import { save } from './blockTypes';
 
 import { ZoomContext } from './context';
@@ -13,8 +13,12 @@ import { ZoomContext } from './context';
 const App = () => {
     const [isMenuOpened, setIsMenuOpened] = useState(false)
     const [query, setQuery] = useState('')
-    const [menuPos, setMenuPos] = useState({x: 0, y: 0})
+    const [menuPos, setMenuPos] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(1.0)
+    const [isDragging, setIsDragging] = useState(false)
+    const [v, sv] = useState(false)
+
+    function update() { sv(!v) }
 
     const menuInputRef = useRef<HTMLInputElement>(null)
     const menuListRef = useRef<HTMLDivElement>(null)
@@ -32,15 +36,22 @@ const App = () => {
 
     useEffect(() => {
         document.addEventListener('click', handleClick)
+        document.addEventListener('mousedown', handleMouseDown)
+        document.addEventListener('mouseup', handleMouseUp)
+        if (isDragging) document.addEventListener('mousemove', handleMouseMove)
 
         return () => {
             document.removeEventListener('click', handleClick)
+            document.removeEventListener('mousedown', handleMouseDown)
+            document.removeEventListener('mouseup', handleMouseUp)
+            if (isDragging) document.removeEventListener('mousemove', handleMouseMove)
         }
     })
 
     const tab = getCurrentTab()
+    const movPos = getMovPos()
     const blocks = tab.map((block, idx) => {
-        return (<Block template={block} key={idx} pos={`${idx + 1}`} addWidth={null} update={null}></Block>)
+        return (<Block template={block} key={idx} pos={`${idx + 1}`} addWidth={null} update={null} movPos={movPos}></Block>)
     })
 
     const grabbingBlock = getGrabbingBlock()
@@ -48,17 +59,45 @@ const App = () => {
     function generateBlock(block: save.Block) {
         setIsMenuOpened(false)
         const wrect = workspaceRef.current?.getBoundingClientRect()
+        const movPos = getMovPos()
         if (wrect) {
             block.pos = {
-                x: menuPos.x - wrect.left,
-                y: menuPos.y - wrect.top
+                x: menuPos.x - wrect.left - movPos.x,
+                y: menuPos.y - wrect.top - movPos.y
             }
         }
         addBlock(block)
     }
 
     function handleWheel(e: React.WheelEvent) {
-        setZoom(zoom - (e.deltaY / 1000))
+        let nz = zoom - (e.deltaY / 1000)
+        if (nz > 2) nz = 2
+        else if (nz < 0.5) nz = 0.5
+        setZoom(nz)
+    }
+
+    function handleMouseMove(e: globalThis.MouseEvent) {
+        const wrect = workspaceRef.current?.getBoundingClientRect()
+        if (wrect) {
+            if (isDragging) {
+                move(e.movementX, e.movementY)
+                update()
+            }
+        }
+    }
+
+    function handleMouseDown(e: globalThis.MouseEvent) {
+        if (e.target instanceof Element) {
+            if (e.target.tagName === 'svg') {
+                setIsDragging(true)
+            }
+        }
+    }
+
+    function handleMouseUp(e: globalThis.MouseEvent) {
+        if (isDragging) {
+            setIsDragging(false)
+        }
     }
 
     return (
@@ -69,7 +108,7 @@ const App = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" onWheel={handleWheel}>
                         <text fontSize={12} id='getTextWidth' y={-300}></text>
                         <g id='grabbingBlock' transform={`scale(${zoom})`}>
-                            {grabbingBlock && <Block template={grabbingBlock} pos='0' addWidth={null} update={null}></Block>}
+                            {grabbingBlock && <Block template={grabbingBlock} pos='0' addWidth={null} update={null} movPos={null}></Block>}
                         </g>
                         <g id='blockGroup' transform={`scale(${zoom})`}>
                             {blocks}
