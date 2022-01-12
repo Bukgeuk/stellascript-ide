@@ -5,17 +5,27 @@
 }
 
 #workspace {
-    width: 100vw;
+    width: 90vw;
     height: 100vh;
     background-color: #f3fcfc;
 }
 
-#workspace > svg {
-    width: 100vw;
+#workspaceSvg { 
+    width: 90vw;
     height: 100vh;
     cursor: move;
 }
 
 #grabbingBlock {
-    opacity: .8;
+    opacity: .7;
+}
+
+#app {
+    display: flex;
+    flex-direction: row;
+}
+
+#explorer {
+    background-color: gray;
+    width: 10vw;
 }

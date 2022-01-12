@@ -37,6 +37,7 @@ const Block = (props: BlockProps) => {
     let stateArr = Array<string>()
     let [update, setUpdate] = useState(false)
 
+    if (!(props.template.content)) console.log(props)
     props.template.content.forEach((item) => {
         if (typeof item !== 'string') {
             if (typeCheck.isSaveInput(item)) {
@@ -82,7 +83,7 @@ const Block = (props: BlockProps) => {
             i++
             if (typeof item.value === 'string') {
                 widthToAdd += getTextWidth(inputValues[ti], 10) + basicInputShapeWidth
-                ret = <Input size={props.template.size} x={currentX} key={idx} inputValue={inputValues[ti]} setInputValue={(v: string) => setInputValue(v, ti)} addWidth={addWidthInInput}></Input>
+                ret = <Input size={props.template.size} x={currentX} key={idx} inputValue={inputValues[ti]} setInputValue={(v: string) => setInputValue(v, ti)} addWidth={addWidthInInput} pos={`${props.pos}.0.${idx + 1}`}></Input>
             }
             else {
                 widthToAdd += item.value.width
@@ -99,9 +100,12 @@ const Block = (props: BlockProps) => {
     currentX += blockPadding
 
     const zoom = useContext(ZoomContext)
-    if (!props.template.pos) props.template.pos = { x: 0, y: 0 }
-    if (!props.movPos) props.movPos = { x: 0, y: 0 }
-    const posX = props.template.pos.x + props.movPos.x, posY = props.template.pos.y + props.movPos.y
+    let tPos, mPos
+    if (!props.template.pos) tPos = { x: 0, y: 0 }
+    else tPos = props.template.pos
+    if (!props.movPos) mPos = { x: 0, y: 0 }
+    else mPos = props.movPos
+    const posX = tPos.x + mPos.x, posY = tPos.y + mPos.y
 
     return (
         <g className="block" transform={`translate(${posX / zoom}, ${posY / zoom})`} data-block-pos={props.pos}>

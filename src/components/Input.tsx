@@ -9,6 +9,7 @@ interface InputProps {
     setInputValue: Function,
     size: base.sizeType,
     x: number,
+    pos: string,
     addWidth: Function
 }
 
@@ -40,11 +41,11 @@ const Input = (props: InputProps) => {
     }
 
     return (
-        <g className="block-input">
+        <g className="block-input" data-block-pos={props.pos}>
             <rect className="input-shape" x={props.x} y={props.size === 'small' ? smallShapeY : normalShapeY} rx="8" ry="8" width={shapeWidth}
                 height="20" fill="#ffde82" stroke="#FF9C00" strokeLinejoin="round" strokeLinecap="round" cursor="text" onClick={handleClick}></rect>
             <foreignObject x={props.x + fx} y={props.size === 'small' ? -4 : -1} width={fInputWidth} height="21">
-                <input className={styles.foreignInput} type="text" value={props.inputValue} onChange={handleChange} ref={fInputRef}></input>
+                <input className={styles.foreignInput} type="text" value={props.inputValue} onChange={handleChange} ref={fInputRef} onKeyDown={() => console.log('dd')}></input>
             </foreignObject>
         </g>
     )

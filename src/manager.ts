@@ -1,4 +1,4 @@
-import { save } from './blockTypes'
+import { save, typeCheck } from './blockTypes'
 import { deepClone } from './function/utils'
 
 let tabs: Array<Array<save.Block>> = [[]]
@@ -14,14 +14,76 @@ export function getCurrentTab() {
     return tabs[currentTab]
 }
 
-export function popBlock(pos: string): save.Block {
+export function getComponent(pos: string): save.Block | save.Input | null {
     const pl = pos.split('.').map((item) => parseInt(item) - 1)
 
-    let copy
-    let element: any = tabs[currentTab][pl[0]]
+    let element = tabs[currentTab][pl[0]]
     let idx = 1
     let isNext = false
     let ncount = 0
+    if (pl.length <= idx) {
+        return tabs[currentTab][pl[0]]
+    }
+    while (pl.length > idx) {
+        if (isNext) {
+            ncount++
+            if (ncount === pl[idx]) {
+                isNext = false
+                idx++
+            }
+            if (element.next) element = element.next
+            else return null
+        } else {
+            if (pl[idx] === -1) {
+                idx++
+                const r = element.content[pl[idx]]
+                if (typeof r !== 'string') {
+                    if (typeCheck.isSaveInput(r)) {
+                        if (pl.length - 1 === idx && typeof r.value === 'string') {
+                            return r
+                        } else if (typeof r.value !== 'string') {
+                            element = r.value
+                            idx++
+                            break
+                        }
+                    }
+                }
+                return null
+            } else {
+                element = element.children!
+                isNext = true
+                ncount = 0
+            }
+        }
+    }
+
+    return element
+}
+
+export function pushBlock(block: save.Block, pos: string): boolean {
+    const cp = getComponent(pos)
+    if (cp) {
+        if (typeCheck.isSaveBlock(cp)) {
+
+        } else {
+            cp.value = block
+        }
+        return true
+    } else return false
+}
+
+export function popBlock(pos: string): save.Block | null {
+    const pl = pos.split('.').map((item) => parseInt(item) - 1)
+
+    let copy
+    let element = tabs[currentTab][pl[0]]
+    let idx = 1
+    let isNext = false
+    let ncount = 0
+    if (pl.length <= idx) {
+        copy = deepClone(element)
+        delete tabs[currentTab][pl[0]]
+    }
     while (pl.length > idx) {
         if (isNext) {
             ncount++
@@ -33,25 +95,43 @@ export function popBlock(pos: string): save.Block {
                 isNext = false
                 idx++
             }
-            element = element.next
+            if (element.next) element = element.next
+            else if (copy) return copy
+            else return null
         } else {
             if (pl[idx] === -1) {
                 idx++
-                if (pl.length - 1 === idx) {
-                    copy = deepClone(element.content[pl[idx]])
-                    element.content[pl[idx]] = ''
+                
+                const r = element.content[pl[idx]]
+                if (typeof r !== 'string') {
+                    if (typeCheck.isSaveInput(r)) {
+                        if (typeof r.value !== 'string') {
+                            element = r.value
+                            if (pl.length - 1 === idx) {
+                                copy = deepClone(r.value)
+                                r.value = ''
+                            }
+                            idx++
+                            break
+                        }
+                    }
                 }
-                element = element.content[pl[idx]]
-                idx++
+                if (copy) return copy
             } else {
-                element = element.children
+                if (element.children) element = element.children
+                else if (copy) return copy
+                else return null
                 isNext = true
                 ncount = 0
             }
         } 
     }
-    
+
     return copy
+}
+
+export function updateBlock() {
+    
 }
 
 export function makeVirtual(pos: string) {
@@ -65,7 +145,7 @@ export function getGrabbingBlock(): save.Block | null {
 export function addWidth(width: number, pos: string) {
     const pl = pos.split('.').map((item) => parseInt(item) - 1)
 
-    let element: any = tabs[currentTab][pl[0]]
+    let element = tabs[currentTab][pl[0]]
     let idx = 1
     let isNext = false
     let ncount = 0
@@ -77,23 +157,35 @@ export function addWidth(width: number, pos: string) {
                 ncount++
                 if (ncount === pl[idx]) {
                     if (pl.length - 1 === idx) {
-                        element.next.width += width
+                        if (element.next)
+                            element.next.width += width
                     }
                     isNext = false
                     idx++
                 }
-                element = element.next
+                if (element.next)
+                    element = element.next
             } else {
                 if (pl[idx] === -1) {
                     idx++
-                    if (pl.length - 1 === idx) {
-                        element.content[pl[idx]].value.width += width
+                    const r = element.content[pl[idx]]
+                    if (typeof r !== 'string') {
+                        if (typeCheck.isSaveInput(r)) {
+                            if (typeof r.value !== 'string') {
+                                if (pl.length - 1 === idx) {
+                                    r.value.width += width
+                                }
+                                element = r.value
+                                idx++
+                                break
+                            }
+                        }
                     }
-                    element = element.content[pl[idx]]
-                    idx++
+                    
                     
                 } else {
-                    element = element.children
+                    if (element.children)
+                        element = element.children
                     isNext = true
                     ncount = 0
                 }
