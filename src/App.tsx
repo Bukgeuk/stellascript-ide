@@ -35,7 +35,6 @@ const App = () => {
     const [isGrabbing, setIsGrabbing] = useState(false)
     const [grabOffset, setGrabOffset] = useState({ x: 0, y: 0 })
     const [grabPos, setGrabPos] = useState({ x: 0, y: 0 })
-    const [originPos, setOriginPos] = useState<string | null>(null)
 
     const menuInputRef = useRef<HTMLInputElement>(null)
     const menuListRef = useRef<HTMLDivElement>(null)
