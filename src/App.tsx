@@ -5,10 +5,11 @@ import './App.css';
 import ContextMenu from './components/ContextMenu';
 import Block from './components/Block';
 
-import { addBlock, getCurrentTab, getGrabbingBlock, getMovPos, makeVirtual, move, pushBlock } from './manager';
+import { addBlock, addWidth, getCurrentTab, getGrabbingBlock, getMovPos, makeVirtual, move, pushBlock } from './manager';
 import { save } from './blockTypes';
 
 import { ZoomContext } from './context';
+import { basicInputShapeWidth } from './constant';
 
 function checkSVG(element: Element): boolean {
     while (element.tagName !== 'BODY') {
@@ -34,6 +35,7 @@ const App = () => {
     const [isGrabbing, setIsGrabbing] = useState(false)
     const [grabOffset, setGrabOffset] = useState({ x: 0, y: 0 })
     const [grabPos, setGrabPos] = useState({ x: 0, y: 0 })
+    const [originPos, setOriginPos] = useState<string | null>(null)
 
     const menuInputRef = useRef<HTMLInputElement>(null)
     const menuListRef = useRef<HTMLDivElement>(null)
@@ -91,6 +93,7 @@ const App = () => {
         setZoom(nz)
     }
 
+    let lastEl: Element | null = null
     function handleMouseMove(e: globalThis.MouseEvent) {
         if (isDragging) {
             move(e.movementX, e.movementY)
@@ -108,6 +111,31 @@ const App = () => {
             const tx = (e.clientX - grabOffset.x) / zoom
             const ty = (e.clientY - grabOffset.y) / zoom
             if (tr) gb?.setAttribute('transform', `scale(${zoom}) translate(${tx}, ${ty})`)
+
+            if (gb) {
+                const rect = gb.getBoundingClientRect()
+                const el = document.elementsFromPoint(rect.x + 10, rect.y + (rect.height / 2))
+                let flag = false
+                let i = 0
+                for (; i < el.length; i++) {
+                    if (el[i].classList.contains('input-shape')) {
+                        flag = true
+                        break
+                    }
+                }
+
+                if (flag) {
+                    if (!lastEl) {
+                        el[i].setAttribute('stroke', '#FFFFFF')
+                        lastEl = el[i]
+                    }
+                } else {
+                    if (lastEl) {
+                        lastEl.setAttribute('stroke', '#FF9C00')
+                        lastEl = null
+                    }
+                }
+            }
         }
     }
 
@@ -140,6 +168,13 @@ const App = () => {
                         dx = 0
                         dy = 0
                     }
+                    
+                    const rect = element.getBoundingClientRect()
+                    if (rect) {
+                        const arr = pos.split('.')
+                        if (arr[arr.length - 2] === '0') addWidth(-rect.width + basicInputShapeWidth, arr.slice(0, -2).join('.'))
+                    }
+
                     makeVirtual(pos)
                     setGrabOffset({ x: e.clientX - movPos.x - dx, y: e.clientY - movPos.y - dy })
                     setGrabPos({ x: e.clientX, y: e.clientY })
@@ -153,7 +188,7 @@ const App = () => {
         if (isDragging) {
             setIsDragging(false)
         } else if (isGrabbing) {
-            const place = (gb: save.Block) => {
+            const place = (gb: save.Block, width: number) => {
                 let opx = 0, opy = 0
                 if (gb.pos) {
                     opx = gb.pos.x
@@ -163,27 +198,37 @@ const App = () => {
                     x: opx + (e.clientX - movPos.x - grabOffset.x),
                     y: opy + (e.clientY - movPos.y - grabOffset.y)
                 }
+
                 addBlock(gb)
             }
 
             let gb = getGrabbingBlock()
             if (gb && e.target instanceof Element) {
-                place(gb)
-                /*if (e.target.tagName === 'svg') {
-                    
-                } else if (checkSVG(e.target)) {
-                    let element = e.target as HTMLElement
-                    while (true) {
-                        if (element.classList.contains('block') || element.classList.contains('block-input')) break
-                        else element = element.parentElement!
+                const rect = document.getElementById('grabbingBlock')?.getBoundingClientRect()
+                if (rect) {
+                    const el = document.elementsFromPoint(rect.x + 10, rect.y + (rect.height / 2))
+                    let flag = false
+                    let i = 0
+                    for (; i < el.length; i++) {
+                        if (el[i].classList.contains('input-shape')) {
+                            flag = true
+                            break
+                        }
                     }
+                    if (!flag) place(gb, rect.width)
+                    else {
+                        const pos = (el[i].parentElement as HTMLElement).dataset.blockPos
+                        if (pos) {
+                            const arr = pos.split('.')
+                            if (arr[arr.length - 2] === '0') addWidth(rect.width - basicInputShapeWidth, arr.slice(0, -2).join('.'))
 
-                    const pos = element.dataset.blockPos
-                    if (pos) {
-                        if (!pushBlock(gb, pos))
-                            place(gb)
+                            pushBlock(gb, pos)
+                        }
+                        else place(gb, rect.width)
                     }
-                }*/
+                } else {
+                    place(gb, 0)
+                }
             }
             setIsGrabbing(false)
         }

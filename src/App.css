@@ -29,3 +29,11 @@
     background-color: gray;
     width: 10vw;
 }
+
+.selected {
+    stroke: #FFD700;
+}
+
+.error {
+    stroke: #DC143C;
+}

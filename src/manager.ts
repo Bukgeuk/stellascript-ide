@@ -44,7 +44,7 @@ export function getComponent(pos: string): save.Block | save.Input | null {
                         } else if (typeof r.value !== 'string') {
                             element = r.value
                             idx++
-                            break
+                            continue
                         }
                     }
                 }
@@ -66,6 +66,7 @@ export function pushBlock(block: save.Block, pos: string): boolean {
         if (typeCheck.isSaveBlock(cp)) {
 
         } else {
+            block.pos = { x: 0, y: 0 }
             cp.value = block
         }
         return true
@@ -112,7 +113,7 @@ export function popBlock(pos: string): save.Block | null {
                                 r.value = ''
                             }
                             idx++
-                            break
+                            continue
                         }
                     }
                 }
@@ -149,10 +150,11 @@ export function addWidth(width: number, pos: string) {
     let idx = 1
     let isNext = false
     let ncount = 0
-    if (pl.length === 1) {
-        element.width += width
-    } else {
+
+    if (pl.length === 1) element.width += width
+    else {
         while (pl.length > idx) {
+            element.width += width
             if (isNext) {
                 ncount++
                 if (ncount === pl[idx]) {
@@ -177,12 +179,10 @@ export function addWidth(width: number, pos: string) {
                                 }
                                 element = r.value
                                 idx++
-                                break
+                                continue
                             }
                         }
-                    }
-                    
-                    
+                    }     
                 } else {
                     if (element.children)
                         element = element.children

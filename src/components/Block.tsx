@@ -87,7 +87,7 @@ const Block = (props: BlockProps) => {
             }
             else {
                 widthToAdd += item.value.width
-                ret = <g transform={`translate(${currentX}, 0)`} key={idx}><Block template={item.value} pos={`${props.pos}.0.${idx + 1}`} addWidth={addWidthBlock} update={() => setUpdate(!update)} movPos={null}></Block></g>
+                ret = <g transform={`translate(${currentX}, ${props.template.size === 'normal' ? '3.5' : '0'})`} key={idx}><Block template={item.value} pos={`${props.pos}.0.${idx + 1}`} addWidth={addWidthBlock} update={() => setUpdate(!update)} movPos={null}></Block></g>
             }
             
         } else {
