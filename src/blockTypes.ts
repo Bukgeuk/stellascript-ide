@@ -55,6 +55,7 @@ export namespace save {
         tag: string,
         pos: {x: number, y : number} | null,
         width: number,
+        height: number,
         color: string,
         stroke: string,
         content: (string | Input | Dropdown)[]

@@ -9,7 +9,7 @@ import { addBlock, addWidth, getCurrentTab, getGrabbingBlock, getMovPos, makeVir
 import { save } from './blockTypes';
 
 import { ZoomContext } from './context';
-import { basicInputShapeWidth } from './constant';
+import { basicInputShapeWidth, normalShapeConstant } from './constant';
 
 function checkSVG(element: Element): boolean {
     while (element.tagName !== 'BODY') {
@@ -67,7 +67,7 @@ const App = () => {
     const tab = getCurrentTab()
     const movPos = getMovPos()
     const blocks = tab.map((block, idx) => {
-        return (<Block template={block} key={idx} pos={`${idx + 1}`} addWidth={null} update={null} movPos={movPos}></Block>)
+        return (<Block template={block} key={idx} pos={`${idx + 1}`} movPos={movPos}></Block>)
     })
 
     const grabbingBlock = getGrabbingBlock()
@@ -86,13 +86,16 @@ const App = () => {
     }
 
     function handleWheel(e: React.WheelEvent) {
+        if (isDragging || isGrabbing) return
         let nz = zoom - (e.deltaY / 1000)
         if (nz > 2) nz = 2
         else if (nz < 0.5) nz = 0.5
         setZoom(nz)
     }
 
-    let lastEl: Element | null = null
+    let lastElCt: Element | null = null
+    let isFixedNx: boolean = false
+    let offsetNx = {x: 0, y: 0}
     function handleMouseMove(e: globalThis.MouseEvent) {
         if (isDragging) {
             move(e.movementX, e.movementY)
@@ -109,29 +112,57 @@ const App = () => {
             const tr = gb?.getAttribute('transform')
             const tx = (e.clientX - grabOffset.x) / zoom
             const ty = (e.clientY - grabOffset.y) / zoom
-            if (tr) gb?.setAttribute('transform', `scale(${zoom}) translate(${tx}, ${ty})`)
+            if (tr && !isFixedNx) gb?.setAttribute('transform', `scale(${zoom}) translate(${tx}, ${ty})`)
 
             if (gb) {
                 const rect = gb.getBoundingClientRect()
-                const el = document.elementsFromPoint(rect.x + 10, rect.y + (rect.height / 2))
-                let flag = false
-                let i = 0
-                for (; i < el.length; i++) {
-                    if (el[i].classList.contains('input-shape')) {
-                        flag = true
+                const elCt = document.elementsFromPoint(rect.x + (10 * zoom), rect.y + (rect.height / 2))
+                let flagCt = false
+                let iCt = 0
+                for (; iCt < elCt.length; iCt++) {
+                    if (elCt[iCt].classList.contains('input-shape')) {
+                        flagCt = true
                         break
                     }
                 }
 
-                if (flag) {
-                    if (!lastEl) {
-                        el[i].setAttribute('stroke', '#FFFFFF')
-                        lastEl = el[i]
+                if (flagCt) {
+                    if (!lastElCt) {
+                        elCt[iCt].setAttribute('stroke', '#FFFFFF')
+                        lastElCt = elCt[iCt]
                     }
                 } else {
-                    if (lastEl) {
-                        lastEl.setAttribute('stroke', '#FF9C00')
-                        lastEl = null
+                    if (lastElCt) {
+                        lastElCt.setAttribute('stroke', '#FF9C00')
+                        lastElCt = null
+                    }
+
+                    const txNx = rect.x + (10 * zoom), tyNx = rect.y - (10 * zoom)
+                    const elNx = document.elementsFromPoint(offsetNx.x === 0 ? txNx : e.clientX + offsetNx.x, offsetNx.y === 0 ? tyNx : e.clientY + offsetNx.y)
+                    let flagNx = false
+                    let iNx = 0
+                    for (; iNx < elNx.length; iNx++) {
+                        if (elNx[iNx].classList.contains('block-shape')) {
+                            flagNx = true
+                            break
+                        }
+                    }
+
+                    if (flagNx) {
+                        const elNxRect = elNx[iNx].parentElement?.getBoundingClientRect()
+                        const wrect = workspaceRef.current?.getBoundingClientRect()
+                        if (!isFixedNx && elNxRect && wrect) {
+                            if (rect.height > normalShapeConstant.shapeHeight && elNxRect.height >= normalShapeConstant.shapeHeight) {
+                                gb.setAttribute('transform', `scale(${zoom}) translate(${(elNxRect.x - grabPos.x + (e.clientX - rect.x)) / zoom}, ${(elNxRect.y + elNxRect.height - grabPos.y + (e.clientY - rect.y)) / zoom})`)
+                                isFixedNx = true
+                                offsetNx = {x: e.clientX - txNx, y: e.clientY - tyNx}
+                            }
+                        }
+                    } else {
+                        if (isFixedNx) {
+                            isFixedNx = false
+                            offsetNx = {x: 0, y: 0}
+                        }
                     }
                 }
             }
@@ -170,12 +201,11 @@ const App = () => {
                     
                     const rect = element.getBoundingClientRect()
                     if (rect) {
-                        const arr = pos.split('.')
-                        if (arr[arr.length - 2] === '0') addWidth(-rect.width + basicInputShapeWidth, arr.slice(0, -2).join('.'))
+                        if (pl[pl.length - 2] === '0') addWidth(-rect.width + basicInputShapeWidth, pl.slice(0, -2).join('.'))
                     }
 
-                    makeVirtual(pos)
-                    setGrabOffset({ x: e.clientX - movPos.x - dx, y: e.clientY - movPos.y - dy })
+                    makeVirtual(pos, dx, dy)
+                    setGrabOffset({ x: e.clientX, y: e.clientY })
                     setGrabPos({ x: e.clientX, y: e.clientY })
                     setIsGrabbing(true)
                 }
@@ -187,48 +217,56 @@ const App = () => {
         if (isDragging) {
             setIsDragging(false)
         } else if (isGrabbing) {
-            const place = (gb: save.Block, width: number) => {
-                let opx = 0, opy = 0
-                if (gb.pos) {
-                    opx = gb.pos.x
-                    opy = gb.pos.y
-                }
-                gb.pos = {
-                    x: opx + (e.clientX - movPos.x - grabOffset.x),
-                    y: opy + (e.clientY - movPos.y - grabOffset.y)
-                }
-
-                addBlock(gb)
-            }
-
             let gb = getGrabbingBlock()
-            if (gb && e.target instanceof Element) {
-                const rect = document.getElementById('grabbingBlock')?.getBoundingClientRect()
-                if (rect) {
-                    const el = document.elementsFromPoint(rect.x + 10, rect.y + (rect.height / 2))
-                    let flag = false
-                    let i = 0
-                    for (; i < el.length; i++) {
-                        if (el[i].classList.contains('input-shape')) {
-                            flag = true
-                            break
-                        }
-                    }
-                    if (!flag) place(gb, rect.width)
-                    else {
-                        const pos = (el[i].parentElement as HTMLElement).dataset.blockPos
-                        if (pos) {
-                            const arr = pos.split('.')
-                            if (arr[arr.length - 2] === '0') addWidth(rect.width - basicInputShapeWidth, arr.slice(0, -2).join('.'))
+            const rect = document.getElementById('grabbingBlock')?.getBoundingClientRect()
 
-                            pushBlock(gb, pos)
-                        }
-                        else place(gb, rect.width)
+            if (isFixedNx) {
+                if (gb && rect) {
+                    
+                }
+            } else {
+                const place = (gb: save.Block) => {
+                    let opx = 0, opy = 0
+                    if (gb.pos) {
+                        opx = gb.pos.x
+                        opy = gb.pos.y
                     }
-                } else {
-                    place(gb, 0)
+                    gb.pos = {
+                        x: opx + (e.clientX - grabOffset.x),
+                        y: opy + (e.clientY - grabOffset.y)
+                    }
+
+                    addBlock(gb)
+                }
+            
+                if (gb && e.target instanceof Element) {
+                    if (rect) {
+                        const el = document.elementsFromPoint(rect.x + 10, rect.y + (rect.height / 2))
+                        let flag = false
+                        let i = 0
+                        for (; i < el.length; i++) {
+                            if (el[i].classList.contains('input-shape')) {
+                                flag = true
+                                break
+                            }
+                        }
+                        if (!flag) place(gb)
+                        else {
+                            const pos = (el[i].parentElement as HTMLElement).dataset.blockPos
+                            if (pos) {
+                                const arr = pos.split('.')
+                                if (arr[arr.length - 2] === '0') addWidth(rect.width - basicInputShapeWidth, arr.slice(0, -2).join('.'))
+
+                                pushBlock(gb, pos)
+                            }
+                            else place(gb)
+                        }
+                    } else {
+                        place(gb)
+                    }
                 }
             }
+
             setIsGrabbing(false)
         }
     }
@@ -248,8 +286,8 @@ const App = () => {
                                 {blocks}
                             </g>
                             {isGrabbing &&
-                            <g id='grabbingBlock' transform={`scale(${zoom}) translate(${(grabPos.x - grabOffset.x) / zoom}, ${(grabPos.y - grabOffset.y) / zoom})`}>
-                                <Block template={grabbingBlock!} pos='0' addWidth={null} update={null} movPos={null}></Block>
+                            <g id='grabbingBlock' className='virtual' transform={`scale(${zoom}) translate(${(grabPos.x - grabOffset.x) / zoom}, ${(grabPos.y - grabOffset.y) / zoom})`}>
+                                <Block template={grabbingBlock!} pos='0' movPos={movPos}></Block>
                             </g>}
                         </svg>
                     </ZoomContext.Provider>

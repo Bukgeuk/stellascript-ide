@@ -14,29 +14,53 @@ export function getCurrentTab() {
     return tabs[currentTab]
 }
 
-export function getComponent(pos: string): save.Block | save.Input | null {
-    const pl = pos.split('.').map((item) => parseInt(item) - 1)
+function __f(e: save.Block[], n: number | number[], m: boolean) {
+    if (Array.isArray(n)) {
+        let element: save.Block | null = e[n[0]]
+        let v
+        if (m) v = n[1] - 1
+        else v = n[1]
+        for (let i = 0; i < v; i++) {
+            if (!element) return null
+            element = element.next
+        }
+        return element
+    } else return e[n]
+}
 
-    let element = tabs[currentTab][pl[0]]
+function __t(n: number | number[]) {
+    if (Array.isArray(n)) return n[0]
+    else return n
+}
+
+export function getComponent(pos: string): save.Block | save.Input | null {
+    const pl = pos.split('.').map(item => {
+        if (item.includes('>'))
+            return item.split('>').map(element => parseInt(element) - 1)
+        else
+            return (parseInt(item) - 1)
+    })
+
+    let element = __f(tabs[currentTab], pl[0], false)
     let idx = 1
     let isNext = false
     let ncount = 0
-    if (pl.length <= idx) {
-        return tabs[currentTab][pl[0]]
+    if (pl.length <= idx || !element) {
+        return element
     }
     while (pl.length > idx) {
         if (isNext) {
             ncount++
-            if (ncount === pl[idx]) {
+            if (ncount === __t(pl[idx])) {
                 isNext = false
                 idx++
             }
             if (element.next) element = element.next
             else return null
         } else {
-            if (pl[idx] === -1) {
+            if (__t(pl[idx]) === -1) {
                 idx++
-                const r = element.content[pl[idx]]
+                const r: string | save.Input | save.Dropdown = element.content[__t(pl[idx])]
                 if (typeof r !== 'string') {
                     if (typeCheck.isSaveInput(r)) {
                         if (pl.length - 1 === idx && typeof r.value === 'string') {
@@ -74,21 +98,36 @@ export function pushBlock(block: save.Block, pos: string): boolean {
 }
 
 export function popBlock(pos: string): save.Block | null {
-    const pl = pos.split('.').map((item) => parseInt(item) - 1)
+    const pl = pos.split('.').map(item => {
+        if (item.includes('>'))
+            return item.split('>').map(element => parseInt(element) - 1)
+        else
+            return (parseInt(item) - 1)
+    })
 
     let copy
-    let element = tabs[currentTab][pl[0]]
+    let element = __f(tabs[currentTab], pl[0], true)
     let idx = 1
     let isNext = false
     let ncount = 0
-    if (pl.length <= idx) {
-        copy = deepClone(element)
-        delete tabs[currentTab][pl[0]]
+    if (!element) return null
+    else if (pl.length <= idx) {
+        if (element.next) {
+            copy = deepClone(element.next)
+            element.next = null
+        } else {
+            copy = deepClone(element)
+            delete tabs[currentTab][__t(pl[0])]
+        }
     }
+    else {
+        if (element.next) element = element.next
+    }
+    
     while (pl.length > idx) {
         if (isNext) {
             ncount++
-            if (ncount === pl[idx]) {
+            if (ncount === __t(pl[idx])) {
                 if (pl.length - 1 === idx) {
                     copy = deepClone(element.next)
                     element.next = null
@@ -100,10 +139,10 @@ export function popBlock(pos: string): save.Block | null {
             else if (copy) return copy
             else return null
         } else {
-            if (pl[idx] === -1) {
+            if (__t(pl[idx]) === -1) {
                 idx++
                 
-                const r = element.content[pl[idx]]
+                const r: string | save.Input | save.Dropdown = element.content[__t(pl[idx])]
                 if (typeof r !== 'string') {
                     if (typeCheck.isSaveInput(r)) {
                         if (typeof r.value !== 'string') {
@@ -135,8 +174,17 @@ export function updateBlock() {
     
 }
 
-export function makeVirtual(pos: string) {
-    grabbingBlock = popBlock(pos)
+export function makeVirtual(pos: string, dx?: number, dy?: number) {
+    const block = popBlock(pos)
+    if (dx && dy && block) {
+        if (dx !== 0 || dy !== 0) {
+            block.pos = {
+                x: dx,
+                y: dy
+            }
+        }    
+    }
+    grabbingBlock = block
 }
 
 export function getGrabbingBlock(): save.Block | null {
@@ -144,20 +192,26 @@ export function getGrabbingBlock(): save.Block | null {
 }
 
 export function addWidth(width: number, pos: string) {
-    const pl = pos.split('.').map((item) => parseInt(item) - 1)
+    const pl = pos.split('.').map(item => {
+        if (item.includes('>'))
+            return item.split('>').map(element => parseInt(element) - 1)
+        else
+            return (parseInt(item) - 1)
+    })
 
-    let element = tabs[currentTab][pl[0]]
+    let element = __f(tabs[currentTab], pl[0], false)
     let idx = 1
     let isNext = false
     let ncount = 0
 
-    if (pl.length === 1) element.width += width
+    if (!element) return
+    else if (pl.length === 1) element.width += width
     else {
         while (pl.length > idx) {
             element.width += width
             if (isNext) {
                 ncount++
-                if (ncount === pl[idx]) {
+                if (ncount === __t(pl[idx])) {
                     if (pl.length - 1 === idx) {
                         if (element.next)
                             element.next.width += width
@@ -168,9 +222,9 @@ export function addWidth(width: number, pos: string) {
                 if (element.next)
                     element = element.next
             } else {
-                if (pl[idx] === -1) {
+                if (__t(pl[idx]) === -1) {
                     idx++
-                    const r = element.content[pl[idx]]
+                    const r: string | save.Input | save.Dropdown = element.content[__t(pl[idx])]
                     if (typeof r !== 'string') {
                         if (typeCheck.isSaveInput(r)) {
                             if (typeof r.value !== 'string') {

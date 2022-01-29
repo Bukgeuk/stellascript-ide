@@ -8,6 +8,12 @@ export const smallShapeConstant = {
     shapeHeight: 20
 }
 
+export const scopeShapeConstant = {
+    shapeHeight: 60,
+    basicChildrenSpace: 5,
+    indentation: 18
+}
+
 export const blockPadding = 12
 export const blockSpace = 8
 

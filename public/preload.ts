@@ -3,7 +3,7 @@ import * as fs from 'fs-extra'
 import { read, blockOption, save, typeCheck } from '../src/blockTypes'
 import * as path from 'path'
 import { getTextWidth } from '../src/function/utils'
-import { basicInputShapeWidth, blockPadding, blockSpace } from '../src/constant'
+import { basicInputShapeWidth, blockPadding, blockSpace, scopeShapeConstant } from '../src/constant'
 
 let text2idx = new Array<string>()
 let idx2block = new Array<save.Block>()
@@ -51,6 +51,7 @@ function read2save(block: read.Block, option: blockOption): save.Block {
         tag: block.tag,
         pos: null,
         width: width - blockSpace,
+        height: scopeShapeConstant.shapeHeight,
         content: content,
         scope: block.scope,
         size: block.size,

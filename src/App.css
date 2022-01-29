@@ -16,7 +16,7 @@
     cursor: move;
 }
 
-#grabbingBlock {
+.virtual {
     opacity: .7;
 }
 

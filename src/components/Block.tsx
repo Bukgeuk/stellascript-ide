@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { typeCheck, save } from '../blockTypes'
-import { basicInputShapeWidth, blockPadding, blockSpace, normalShapeConstant, smallShapeConstant } from "../constant";
+import { basicInputShapeWidth, blockPadding, blockSpace, normalShapeConstant, scopeShapeConstant, smallShapeConstant } from "../constant";
 import { getTextWidth } from "../function/utils";
 import { addWidth } from "../manager";
 import './Block.css'
@@ -19,7 +19,7 @@ const NoneScopeShape = (props: {width: number, color: string, stroke: string, si
 const NormalScopeShape = (props: {width: number, color: string, stroke: string}) => {
     return (
         <path className="block-shape"
-            d={`m 8 0 h ${props.width + 10 - 20} c 4.5 0 8 3.5 8 8 v 12 c 0 4.5 -3.5 8 -8 8 H 18 c -3.5 0 -6 2.5 -6 6 v 5 c 0 3.5 2.5 6 6 6 h ${props.width - 20} a 7.5 7.5 0 0 1 0 15 H 8 c -4.5 0 -8 -3.5 -8 -8 V 8 c 0 -4.5 3.5 -8 8 -8 z`}
+            d={`m 8 0 h ${props.width + 10 - 20} c 4.5 0 8 3.5 8 8 v 12 c 0 4.5 -3.5 8 -8 8 H 18 c -3.5 0 -6 2.5 -6 6 v ${scopeShapeConstant.basicChildrenSpace} c 0 3.5 2.5 6 6 6 h ${props.width - 20} a 7.5 7.5 0 0 1 0 15 H 8 c -4.5 0 -8 -3.5 -8 -8 V 8 c 0 -4.5 3.5 -8 8 -8 z`}
             fill={props.color} stroke={props.stroke} strokeLinejoin="round" strokeLinecap="round">
         </path>
     )
@@ -28,9 +28,10 @@ const NormalScopeShape = (props: {width: number, color: string, stroke: string})
 interface BlockProps {
     template: save.Block,
     pos: string,
-    movPos: { x: number, y: number } | null,
-    addWidth: Function | null,
-    update: Function | null
+    isNext?: boolean,
+    movPos?: { x: number, y: number },
+    addWidth?: Function,
+    update?: Function
 }
 
 const Block = (props: BlockProps) => {
@@ -87,7 +88,7 @@ const Block = (props: BlockProps) => {
             }
             else {
                 widthToAdd += item.value.width
-                ret = <g transform={`translate(${currentX}, ${props.template.size === 'normal' ? '3.5' : '0'})`} key={idx}><Block template={item.value} pos={`${props.pos}.0.${idx + 1}`} addWidth={addWidthBlock} update={() => setUpdate(!update)} movPos={null}></Block></g>
+                ret = <g transform={`translate(${currentX}, ${props.template.size === 'normal' ? '3.5' : '0'})`} key={idx}><Block template={item.value} pos={`${props.pos}.0.${idx + 1}`} addWidth={addWidthBlock} update={() => setUpdate(!update)}></Block></g>
             }
             
         } else {
@@ -107,6 +108,19 @@ const Block = (props: BlockProps) => {
     else mPos = props.movPos
     const posX = tPos.x + mPos.x, posY = tPos.y + mPos.y
 
+    let nextPos
+    if (props.isNext) {
+        nextPos = props.pos.split('.').map(((v, i, a) => {
+            if (i === a.length - 1) {
+                if (a.length === 1) return `${props.pos}>1`
+                else {
+                    const t = v.split('>')
+                    return (parseInt(t[t.length - 1]) + 1)
+                }
+            }
+        })).join('.')
+    } else nextPos = `${props.pos}.1`
+
     return (
         <g className="block" transform={`translate(${posX / zoom}, ${posY / zoom})`} data-block-pos={props.pos}>
             {props.template.scope === 'normal' ?
@@ -115,6 +129,10 @@ const Block = (props: BlockProps) => {
             <g className="block-content">
                 {content}
             </g>
+            {props.template.next &&
+            <g className="block-next">
+                <Block template={props.template.next} pos={nextPos} update={() => setUpdate(!update)}></Block>
+            </g>}
         </g>
     )
 }
